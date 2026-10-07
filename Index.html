@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>School Library Logger</title>
+<style>
+:root{--bg:#f4f7fb;--panel:#fff;--text:#182230;--muted:#6b7788;--line:#e4e9f0;--primary:#2563eb;--primary2:#1d4ed8;--danger:#dc2626;--success:#16a34a;--shadow:0 8px 28px rgba(15,23,42,.08);--radius:16px}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}button,input{font:inherit}button{cursor:pointer;border:0}.hidden{display:none!important}
+.login-screen{min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(135deg,#eff6ff,#f8fafc)}.login-card{width:min(420px,100%);background:#fff;padding:34px;border-radius:22px;box-shadow:var(--shadow);border:1px solid var(--line)}.login-card h1{margin:0 0 8px}.login-card p{color:var(--muted)}
+.app{display:flex;min-height:100vh}.sidebar{width:240px;background:#111827;color:#fff;padding:22px 16px;position:fixed;inset:0 auto 0 0}.brand{font-size:21px;font-weight:800;padding:10px 12px 24px}.nav{display:grid;gap:8px}.nav button{background:transparent;color:#cbd5e1;text-align:left;padding:12px 14px;border-radius:10px}.nav button.active,.nav button:hover{background:#1f2937;color:#fff}.logout{position:absolute;left:16px;right:16px;bottom:18px;background:#374151;color:#fff;padding:11px;border-radius:10px}.main{margin-left:240px;width:calc(100% - 240px);padding:28px;max-width:1500px}.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}.topbar h2{margin:0}.user-badge{background:#e8f0ff;color:#1d4ed8;padding:8px 12px;border-radius:999px;font-weight:700}
+.page{display:none}.page.active{display:block}.grid{display:grid;gap:18px}.stats{grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:18px}.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}.stat-label{color:var(--muted);font-size:14px}.stat-value{font-size:31px;font-weight:800;margin-top:8px}.two{grid-template-columns:1fr 1fr}.section-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.section-title h3{margin:0}.muted{color:var(--muted)}
+.student-list{display:grid;gap:10px}.student-row{display:flex;align-items:center;justify-content:space-between;padding:14px;border:1px solid var(--line);border-radius:12px;background:#fafcff}.student-main{display:flex;gap:12px;align-items:center}.avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#e0ebff;color:#1d4ed8;font-weight:800}.student-meta{color:var(--muted);font-size:13px;margin-top:3px}.count{min-width:72px;text-align:center;background:#eef2ff;color:#3730a3;border-radius:12px;padding:8px 10px;font-weight:800}.empty{text-align:center;color:var(--muted);padding:30px}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.field label{display:block;font-size:13px;font-weight:700;margin-bottom:7px}.field input{width:100%;padding:11px 12px;border:1px solid #cfd7e3;border-radius:10px;outline:none}.field input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.1)}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.btn{padding:11px 15px;border-radius:10px;font-weight:700}.primary{background:var(--primary);color:#fff}.primary:hover{background:var(--primary2)}.secondary{background:#eef2f7;color:#253247}.danger{background:#fee2e2;color:#991b1b}.success{background:#dcfce7;color:#166534}.btn:disabled{opacity:.5;cursor:not-allowed}
+.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse}.table th,.table td{padding:12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}.table th{font-size:13px;color:var(--muted)}.pill{display:inline-block;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:700}.pill.green{background:#dcfce7;color:#166534}.pill.gray{background:#eef2f7;color:#526071}
+.toast{position:fixed;right:20px;bottom:20px;background:#111827;color:#fff;padding:13px 16px;border-radius:12px;box-shadow:var(--shadow);z-index:50}.toast.error{background:#991b1b}.toast.success{background:#166534}
+
+.ai-status,.ai-response{padding:14px 16px;border:1px solid #e5e7eb;border-radius:12px;background:#f8fafc;white-space:pre-wrap;line-height:1.55}.ai-response{min-height:100px;background:#fff}.ai-status{font-weight:600}
+@media(max-width:850px){.sidebar{width:190px}.main{margin-left:190px;width:calc(100% - 190px);padding:18px}.stats,.two{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <h1>📚 School Library</h1><p>Administrator access</p>
+    <div class="field"><label>Username</label><input id="loginUser" autocomplete="username" placeholder="admin"></div>
+    <div class="field" style="margin-top:14px"><label>Password</label><input id="loginPass" type="password" autocomplete="current-password" placeholder="Password"></div>
+    <button class="btn primary" style="width:100%;margin-top:18px" onclick="login()">Log In</button>
+    
+  </div>
+</div>
+
+<div id="app" class="app hidden">
+  <aside class="sidebar"><div class="brand">📚 School Library</div><div class="nav">
+    <button data-page="dashboard" onclick="showPage('dashboard')">🏠 Dashboard</button>
+    <button data-page="checkin" onclick="showPage('checkin')">🟢 Check In / Out</button>
+    <button data-page="students" onclick="showPage('students')">👥 Students</button>
+    <button data-page="logs" onclick="showPage('logs')">📋 Logs</button>
+    <button data-page="export" onclick="showPage('export')">📤 Export / Backup</button>
+    <button data-page="settings" onclick="showPage('settings')">⚙️ Settings</button>
+    <button data-page="ai" onclick="showPage('ai')">🤖 NOVA SUPPORT</button>
+  </div><button class="logout" onclick="logout()">Log Out</button></aside>
+
+  <main class="main">
+    <div class="topbar"><h2 id="pageTitle">Dashboard</h2><span class="user-badge">👤 Admin</span></div>
+
+    <section id="page-dashboard" class="page">
+      <div class="grid stats"><div class="card"><div class="stat-label">Total Logged In (This Month)</div><div id="statLogins" class="stat-value">0</div></div><div class="card"><div class="stat-label">Total Checked Out (This Month)</div><div id="statCheckouts" class="stat-value">0</div></div><div class="card"><div class="stat-label">Currently Checked In</div><div id="statActive" class="stat-value">0</div></div></div>
+      <div class="card"><div class="section-title"><h3>Log In History</h3><span class="muted">Total check-ins per student</span></div><div id="loginHistory" class="student-list"></div></div>
+    </section>
+
+    <section id="page-checkin" class="page">
+      <div class="grid two">
+        <div class="card"><div class="section-title"><h3>Student Check In</h3></div><div class="field"><label>Student</label><input id="checkinStudent" list="studentOptions" placeholder="Search student name"></div><datalist id="studentOptions"></datalist><div class="actions"><button class="btn primary" onclick="checkIn()">Check In Student</button></div><p class="muted" style="margin-top:12px">Students check in once and may check out anytime.</p></div>
+        <div class="card"><div class="section-title"><h3>Student Check Out</h3></div><div class="form-grid"><div class="field"><label>Student ID</label><input id="checkoutId" placeholder="Enter Student ID"></div><div class="field"><label>Course</label><input id="checkoutCourse" placeholder="Enter Course"></div></div><div class="actions"><button class="btn success" onclick="checkOut()">Check Out Student</button></div><p class="muted" style="margin-top:12px">Enter the same ID and course used for the student's active record.</p></div>
+      </div>
+      <div class="card" style="margin-top:18px"><div class="section-title"><h3>Students Currently Checked In</h3></div><div id="activeTable"></div></div>
+    </section>
+
+    <section id="page-students" class="page">
+      <div class="card"><div class="section-title"><h3>Add Student</h3></div><div class="form-grid"><div class="field"><label>Name</label><input id="studentName" placeholder="Student name"></div><div class="field"><label>Student ID</label><input id="studentId" placeholder="Student ID"></div><div class="field"><label>Course</label><input id="studentCourse" placeholder="Course"></div></div><div class="actions"><button class="btn primary" onclick="addStudent()">Add Student</button></div></div>
+      <div class="card" style="margin-top:18px"><div class="section-title"><h3>Student Records</h3><span id="studentCount" class="muted"></span></div><div id="studentTable"></div></div>
+    </section>
+
+    <section id="page-logs" class="page">
+      <div class="card"><div class="section-title"><h3>Student Check-Out Logs</h3><span class="muted">Only completed check-outs are recorded</span></div><div id="logsTable"></div></div>
+    </section>
+
+    <section id="page-export" class="page"><div class="card"><div class="section-title"><h3>Export / Backup</h3></div><p class="muted">Export and backup are protected by the Admin password when opening this tab. CSV is limited to student name, ID, course, and check-out time.</p><div class="actions"><button class="btn primary" onclick="exportJSON()">Download JSON Backup</button><button class="btn secondary" onclick="exportCSV()">Download CSV</button></div><p style="margin-top:18px" class="muted">Only completed student check-outs are included in the CSV.</p></div></section>
+
+    <section id="page-ai" class="page">
+      <div class="card"><div class="section-title"><h3>🤖 NOVA SUPPORT</h3><span class="muted">Admin-only diagnostics</span></div>
+        <p class="muted">Use this assistant to inspect the current library data and help identify common problems. It never changes or deletes your data automatically.</p>
+        <div id="aiStatus" class="ai-status">Ready to diagnose the current library.</div>
+        <div class="actions" style="margin-top:14px"><button class="btn primary" onclick="runAIDiagnostics()">Run Diagnostics</button><button class="btn secondary" onclick="copyAIDiagnostics()">Copy Report</button></div>
+        <div class="field" style="margin-top:18px"><label>Ask the Admin Assistant</label><textarea id="aiQuestion" rows="4" placeholder="Example: Why can't a student check in?"></textarea></div>
+        <div class="actions"><button class="btn primary" onclick="askLocalAssistant()">Get Help</button></div>
+        <div id="aiResponse" class="ai-response" style="margin-top:16px">Run diagnostics or ask a question to get help.</div>
+      </div>
+    </section>
+
+    <section id="page-settings" class="page"><div class="card"><div class="section-title"><h3>Admin Settings</h3></div><p class="muted">Erase All Data is available after opening Settings with the Admin password and requires deliberate confirmation.</p><button class="btn danger" onclick="eraseAllData()">Erase All Data</button></div></section>
+  </main>
+</div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+const STORAGE_KEY='schoolLibraryData';
+const SESSION_KEY='schoolLibraryAdminSession';
+const EMPTY={students:[],logs:[],sessions:[],checkedOut:[],libraryName:'School Library'};
+let state=loadData();
+let loggedIn=false;
+
+function cloneEmpty(){return {students:[],logs:[],sessions:[],checkedOut:[],libraryName:'School Library'};}
+function normalize(raw){
+  const s=raw&&typeof raw==='object'?raw:{};
+  return {
+    students:Array.isArray(s.students)?s.students.map(x=>({name:String(x?.name||'').trim(),id:String(x?.id||'').trim(),course:String(x?.course||'').trim()})).filter(x=>x.name):[],
+    logs:Array.isArray(s.logs)?s.logs.map(x=>({time:x?.time||'',student:String(x?.student||'').trim(),studentId:String(x?.studentId||'').trim(),course:String(x?.course||'').trim(),action:String(x?.action||''),details:String(x?.details||'')})).filter(x=>x.student):[],
+    sessions:Array.isArray(s.sessions)?s.sessions.map(x=>({name:String(x?.name||'').trim(),studentId:String(x?.studentId||'').trim(),course:String(x?.course||'').trim(),checkInTime:x?.checkInTime||''})).filter(x=>x.name):[],
+    checkedOut:Array.isArray(s.checkedOut)?s.checkedOut:[],
+    libraryName:'School Library'
+  };
+}
+function loadData(){try{return normalize(JSON.parse(localStorage.getItem(STORAGE_KEY)||'null'));}catch{return cloneEmpty();}}
+function saveData(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}
+function toast(msg,type=''){const el=document.getElementById('toast');el.className='toast '+type;el.textContent=msg;clearTimeout(window.__toast);window.__toast=setTimeout(()=>el.className='',2800);}
+function now(){return new Date().toLocaleString();}
+function getStudent(name){const n=String(name||'').trim().toLowerCase();return state.students.find(s=>s.name.toLowerCase()===n)||null;}
+function addLog(student,action,details=''){const s=getStudent(student);if(!s)return;state.logs.unshift({time:now(),student:s.name,studentId:s.id,course:s.course,action,details});}
+function login(){const u=document.getElementById('loginUser').value.trim(),p=document.getElementById('loginPass').value;if(u==='admin'&&p==='admin123'){loggedIn=true;sessionStorage.setItem(SESSION_KEY,'true');document.getElementById('loginScreen').classList.add('hidden');document.getElementById('app').classList.remove('hidden');showPage('dashboard');renderAll();toast('Welcome, Admin!','success');}else toast('Invalid username or password','error');}
+function logout(){loggedIn=false;sessionStorage.removeItem(SESSION_KEY);document.getElementById('app').classList.add('hidden');document.getElementById('loginScreen').classList.remove('hidden');document.getElementById('loginPass').value='';}
+function requireAdmin(){if(!loggedIn){toast('Admin login required','error');return false;}return true;}
+function showPage(page){if(!requireAdmin())return;const openPage=()=>{document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById('page-'+page).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===page));document.getElementById('pageTitle').textContent={dashboard:'Dashboard',checkin:'Check In / Out',students:'Students',logs:'Logs',export:'Export / Backup',settings:'Settings',ai:'NOVA SUPPORT'}[page]||'Dashboard';renderAll();};if(page==='export'||page==='settings'||page==='ai'){requestAdminPassword(page==='export'?'open the Export / Backup tab':page==='settings'?'open Admin Settings':'open NOVA SUPPORT').then(ok=>{if(ok)openPage();});}else openPage();}
+function renderAll(){if(!loggedIn)return;renderDashboard();renderStudents();renderCheckin();renderLogs();fillStudentOptions();}
+function renderDashboard(){
+  const month=new Date().getMonth(),year=new Date().getFullYear();
+  const logs=state.logs.filter(l=>l.action==='login'&&sameMonth(l.time,month,year));
+  const outs=state.logs.filter(l=>l.action==='checkout'&&sameMonth(l.time,month,year));
+  document.getElementById('statLogins').textContent=logs.length;document.getElementById('statCheckouts').textContent=outs.length;document.getElementById('statActive').textContent=state.sessions.length;
+  const list=document.getElementById('loginHistory');
+  if(!state.students.length){list.innerHTML='<div class="empty">No students have been added yet.</div>';return;}
+  const rows=state.students.map(s=>({s,count:state.logs.filter(l=>l.action==='login'&&l.student.toLowerCase()===s.name.toLowerCase()).length})).sort((a,b)=>a.s.name.localeCompare(b.s.name));
+  list.innerHTML=rows.map(({s,count})=>`<div class="student-row"><div class="student-main"><div class="avatar">${escapeHTML(s.name.charAt(0).toUpperCase())}</div><div><strong>${escapeHTML(s.name)}</strong><div class="student-meta">${escapeHTML(s.id||'No ID')} · ${escapeHTML(s.course||'No course')}</div></div></div><div class="count">${count} login${count===1?'':'s'}</div></div>`).join('');
+}
+function sameMonth(value,m,y){const d=new Date(value);return !Number.isNaN(d.getTime())&&d.getMonth()===m&&d.getFullYear()===y;}
+function fillStudentOptions(){document.getElementById('studentOptions').innerHTML=state.students.map(s=>`<option value="${escapeAttr(s.name)}">`).join('');}
+function checkIn(){
+  if(!requireAdmin())return;const name=document.getElementById('checkinStudent').value.trim(),s=getStudent(name);if(!s){toast('Select a registered student','error');return;}
+  // Active state is represented only by state.sessions. No books/studying state is involved.
+  const active=state.sessions.find(x=>x.name.toLowerCase()===s.name.toLowerCase()&&x.studentId===s.id&&x.course===s.course);
+  if(active){toast('This student is already checked in','error');return;}
+  // Remove only truly orphaned sessions for this exact student identity.
+  state.sessions=state.sessions.filter(x=>!(x.name.toLowerCase()===s.name.toLowerCase()&&(x.studentId!==s.id||x.course!==s.course)));
+  state.sessions.push({name:s.name,studentId:s.id,course:s.course,checkInTime:now()});addLog(s.name,'login','Student checked in');saveData();document.getElementById('checkinStudent').value='';renderAll();toast('Student checked in','success');
+}
+function checkOut(){
+  if(!requireAdmin())return;const id=document.getElementById('checkoutId').value.trim().toLowerCase(),course=document.getElementById('checkoutCourse').value.trim().toLowerCase();if(!id||!course){toast('Enter Student ID and Course','error');return;}
+  const idx=state.sessions.findIndex(x=>x.studentId.toLowerCase()===id&&x.course.toLowerCase()===course);if(idx<0){toast('No active check-in matches that ID and course','error');return;}
+  const session=state.sessions[idx];state.sessions.splice(idx,1);addLog(session.name,'checkout','Student checked out');state.checkedOut=state.checkedOut.filter(x=>!(String(x?.student||'').toLowerCase()===session.name.toLowerCase()));saveData();document.getElementById('checkoutId').value='';document.getElementById('checkoutCourse').value='';renderAll();toast('Student checked out','success');
+}
+function renderLogs(){const box=document.getElementById('logsTable');const logs=state.logs.filter(l=>l.action==='checkout');if(!logs.length){box.innerHTML='<div class="empty">No student check-outs have been recorded yet.</div>';return;}box.innerHTML=`<div class="table-wrap"><table class="table"><thead><tr><th>Student</th><th>Student ID</th><th>Course</th><th>Date</th><th>Check-Out Time</th></tr></thead><tbody>${logs.map(l=>{const d=new Date(l.time);const valid=!Number.isNaN(d.getTime());const date=valid?d.toLocaleDateString():String(l.time||'').split(',')[0]||'';const time=valid?d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit',second:'2-digit'}):String(l.time||'').split(',').slice(1).join(',').trim();return `<tr><td>${escapeHTML(l.student)}</td><td>${escapeHTML(l.studentId||'')}</td><td>${escapeHTML(l.course||'')}</td><td>${escapeHTML(date)}</td><td>${escapeHTML(time)}</td></tr>`;}).join('')}</tbody></table></div>`;}
+function renderCheckin(){const box=document.getElementById('activeTable');if(!state.sessions.length){box.innerHTML='<div class="empty">No students are currently checked in.</div>';return;}box.innerHTML=`<div class="table-wrap"><table class="table"><thead><tr><th>Student</th><th>Student ID</th><th>Course</th><th>Check-In Time</th></tr></thead><tbody>${state.sessions.map(s=>`<tr><td>${escapeHTML(s.name)}</td><td>${escapeHTML(s.studentId)}</td><td>${escapeHTML(s.course)}</td><td>${escapeHTML(s.checkInTime)}</td></tr>`).join('')}</tbody></table></div>`;}
+function addStudent(){if(!requireAdmin())return;const name=document.getElementById('studentName').value.trim(),id=document.getElementById('studentId').value.trim(),course=document.getElementById('studentCourse').value.trim();if(!name||!id||!course){toast('Enter name, Student ID, and course','error');return;}if(getStudent(name)){toast('A student with that name already exists','error');return;}if(state.students.some(s=>s.id.toLowerCase()===id.toLowerCase())){toast('That Student ID is already registered','error');return;}state.students.push({name,id,course});saveData();document.getElementById('studentName').value='';document.getElementById('studentId').value='';document.getElementById('studentCourse').value='';renderAll();toast('Student added','success');}
+function removeStudent(name){if(!requireAdmin())return;if(!confirm(`Remove ${name} and all of this student's stored history?`))return;const n=name.toLowerCase();state.students=state.students.filter(s=>s.name.toLowerCase()!==n);state.logs=state.logs.filter(l=>l.student.toLowerCase()!==n);state.sessions=state.sessions.filter(s=>s.name.toLowerCase()!==n);state.checkedOut=state.checkedOut.filter(s=>String(s?.student||'').toLowerCase()!==n);saveData();renderAll();toast('Student and associated records removed','success');}
+function renderStudents(){document.getElementById('studentCount').textContent=`${state.students.length} student${state.students.length===1?'':'s'}`;const box=document.getElementById('studentTable');if(!state.students.length){box.innerHTML='<div class="empty">No students registered.</div>';return;}box.innerHTML=`<div class="table-wrap"><table class="table"><thead><tr><th>Name</th><th>Student ID</th><th>Course</th><th>Action</th></tr></thead><tbody>${[...state.students].sort((a,b)=>a.name.localeCompare(b.name)).map(s=>`<tr><td>${escapeHTML(s.name)}</td><td>${escapeHTML(s.id)}</td><td>${escapeHTML(s.course)}</td><td><button class="btn danger" onclick='removeStudent(${JSON.stringify(s.name)})'>Remove</button></td></tr>`).join('')}</tbody></table></div>`;}
+function buildAIDiagnosticReport(){
+  const issues=[];
+  const studentCount=state.students.length;
+  const activeCount=state.sessions.length;
+  const loginCount=state.logs.filter(l=>l.action==='login').length;
+  const checkoutCount=state.logs.filter(l=>l.action==='checkout').length;
+  const ids=new Map();
+  state.students.forEach(s=>{const k=s.id.toLowerCase();if(k)ids.set(k,(ids.get(k)||0)+1);});
+  const duplicateIds=[...ids.entries()].filter(([,n])=>n>1).map(([id])=>id);
+  const studentNames=new Set(state.students.map(s=>s.name.toLowerCase()));
+  const orphanSessions=state.sessions.filter(x=>!studentNames.has(x.name.toLowerCase()));
+  const orphanLogs=state.logs.filter(l=>!studentNames.has(l.student.toLowerCase()));
+  if(duplicateIds.length) issues.push('Duplicate Student IDs found: '+duplicateIds.join(', '));
+  if(orphanSessions.length) issues.push(orphanSessions.length+' active session(s) belong to students who are no longer registered.');
+  if(orphanLogs.length) issues.push(orphanLogs.length+' log record(s) belong to students who are no longer registered.');
+  state.sessions.forEach(x=>{if(!x.studentId||!x.course)issues.push('Active session missing Student ID or Course: '+x.name);});
+  if(!issues.length) issues.push('No common data problems were detected.');
+  return 'School Library Admin Diagnostic Report\n\nSummary\n- Registered students: '+studentCount+'\n- Currently checked in: '+activeCount+'\n- Login records: '+loginCount+'\n- Checkout records: '+checkoutCount+'\n\nFindings\n- '+issues.join('\n- ');
+}
+function runAIDiagnostics(){if(!requireAdmin())return;const report=buildAIDiagnosticReport();document.getElementById('aiStatus').textContent='Diagnostics completed at '+now();document.getElementById('aiResponse').textContent=report;}
+function copyAIDiagnostics(){if(!requireAdmin())return;const text=document.getElementById('aiResponse').textContent||buildAIDiagnosticReport();navigator.clipboard?.writeText(text).then(()=>toast('Diagnostic report copied','success')).catch(()=>toast('Copy failed; select the report manually','error'));}
+function askLocalAssistant(){if(!requireAdmin())return;const q=document.getElementById('aiQuestion').value.trim().toLowerCase();if(!q){toast('Enter a question first','error');return;}let answer='';if(q.includes('check in')||q.includes('already checked')){const report=buildAIDiagnosticReport();const stale=state.sessions.filter(x=>!getStudent(x.name));answer=stale.length?'I found '+stale.length+' active session(s) for students who are no longer registered. That can explain a stale check-in.\n\n'+report:'The current data has no orphaned active sessions. If a student is still reported as checked in, verify that the selected student name, Student ID, and Course match the registered student record.\n\n'+report;}else if(q.includes('checkout')||q.includes('check out')){answer='Checkout requires the Student ID and Course to match an active session. Check the Students tab to confirm the exact values, then try again.\n\n'+buildAIDiagnosticReport();}else if(q.includes('export')||q.includes('csv')||q.includes('backup')){answer='Export and Backup are Admin-only tabs. CSV contains Student Name, Student ID, Course, and checkout Time, and only completed checkout records are included.\n\n'+buildAIDiagnosticReport();}else if(q.includes('student')&&q.includes('remove')){answer='Removing a student should also remove that student’s login/checkout logs and active session. If something remains, run Diagnostics and look for orphaned records.\n\n'+buildAIDiagnosticReport();}else if(q.includes('erase')||q.includes('delete')){answer='Erase All Data is an Admin Settings action and requires deliberate confirmation. The assistant will not erase data automatically.\n\n'+buildAIDiagnosticReport();}else{answer='I can help diagnose common School Library problems involving check-in, checkout, students, logs, CSV/JSON export, and data reset. Try describing one of those problems.\n\n'+buildAIDiagnosticReport();}document.getElementById('aiResponse').textContent=answer;}
+
+function requestAdminPassword(action){return new Promise(resolve=>{let modal=document.getElementById('adminPasswordModal');if(!modal){modal=document.createElement('div');modal.id='adminPasswordModal';modal.innerHTML='<div style="position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:9999"><div style="background:var(--card,#fff);padding:24px;border-radius:14px;width:min(380px,90vw);box-shadow:0 20px 60px rgba(0,0,0,.25)"><h3 style="margin:0 0 8px">Admin Password</h3><p class="muted" style="margin:0 0 16px"></p><input id="protectedTabPassword" type="password" autocomplete="current-password" placeholder="Password" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #ccc;border-radius:8px"><div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px"><button id="protectedCancel" class="btn secondary">Cancel</button><button id="protectedUnlock" class="btn primary">Unlock</button></div></div></div>';document.body.appendChild(modal);}modal.querySelector('p').textContent='Enter the Admin password to '+action+'.';modal.style.display='block';const input=document.getElementById('protectedTabPassword');input.value='';input.focus();const finish=ok=>{modal.style.display='none';resolve(ok);};document.getElementById('protectedCancel').onclick=()=>finish(false);document.getElementById('protectedUnlock').onclick=()=>{if(input.value==='admin123')finish(true);else{toast('Incorrect Admin password','error');input.select();}};input.onkeydown=e=>{if(e.key==='Enter')document.getElementById('protectedUnlock').click();if(e.key==='Escape')finish(false);};});}
+function eraseAllData(){if(!requireAdmin())return;if(!confirm('Erase ALL library data? This cannot be undone.'))return;localStorage.removeItem(STORAGE_KEY);state=cloneEmpty();renderAll();toast('All library data has been erased','success');}
+function exportJSON(){if(!requireAdmin())return;const payload={...state,exportedAt:new Date().toISOString(),format:'school-library-json-backup-v2'};download(JSON.stringify(payload,null,2),'School_Library_Backup_'+fileStamp()+'.json','application/json');}
+function exportCSV(){if(!requireAdmin())return;const headers=['Student Name','Student ID','Course','Time'];const rows=state.logs.filter(l=>l.action==='checkout').map(l=>[l.student,l.studentId||'',l.course||'',formatCheckoutTime(l.time)].map(csv).join(','));const text='\uFEFF'+[headers.map(csv).join(','),...rows].join('\r\n');download(text,'School_Library_Checkout_Export_'+new Date().toISOString().slice(0,10)+'.csv','text/csv;charset=utf-8');}
+function formatCheckoutTime(value){const d=new Date(value);if(!Number.isNaN(d.getTime()))return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});return String(value||'');}
+function csv(v){const t=String(v??'').replace(/\r?\n|\r/g,' ');return /[",]/.test(t)?'"'+t.replace(/"/g,'""')+'"':t;}
+function download(content,name,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('File exported','success');}
+function fileStamp(){return new Date().toISOString().replace(/[:.]/g,'-');}
+function escapeHTML(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function escapeAttr(v){return escapeHTML(v);}
+
+document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')login();});
+// Always start at the Admin login screen. This changes only the UI session state; saved library data is untouched.
+if(sessionStorage.getItem(SESSION_KEY)==='true'){loggedIn=true;document.getElementById('loginScreen').classList.add('hidden');document.getElementById('app').classList.remove('hidden');showPage('dashboard');renderAll();}else{document.getElementById('loginScreen').classList.remove('hidden');}
+</script>
+</body>
+</html>
